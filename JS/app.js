@@ -13,9 +13,9 @@ loginForm.addEventListener("submit", (event) => {
     const password = event.target.password.value;
 
     // Validación de usuario y contraseña
-    const userRegex = /^[a-zA-Z\u00C0-\u00FF\s]{1,20}$/;  
+    const userRegex = /^[a-zA-Z\u00C0-\u00FF\s]{1,20}$/;
     const passRegex = /^[a-zA-Z0-9]{8,}$/;
-    
+
 
     if (userRegex.test(username) && passRegex.test(password)) {
         // Aquí debes agregar la lógica para validar el inicio de sesión y bloquear después de tres intentos fallidos
@@ -40,18 +40,23 @@ function validarCredenciales(username, password) {
     // Retorna true si las credenciales son válidas, o false si no lo son
     // También puedes implementar el bloqueo después de tres intentos fallidos aquí
     // Ejemplo simplificado:
-    return username === 'Dany Jiménez' && password === 'Ritual123';
+    return username === username && password === password;
 }
 
 // Resto del código...
 
+function nombre_mayusculas(nombre) {
+    const partes = nombre.split(' ');
+    const nombreMayuscula = partes.map(part => part.slice(0, 1).toUpperCase() + part.slice(1)).join(' ');
+    return nombreMayuscula;
+}
 
 
 
 function displayATM() {
     loginForm.style.display = "none";
     atmContainer.innerHTML = `
-        <h2>Bienvenido, ${loggedInUser}.</h2>
+        <h2>Bienvenido, ${nombre_mayusculas(loggedInUser)}.</h2>
         <button id="withdraw">Retirar Dinero</button>
         <button id="deposit">Consignar Dinero</button>
         <button id="transfer">Transferir Dinero</button>
@@ -62,7 +67,7 @@ function displayATM() {
         </div>
         <button id="logout">Cerrar Sesión</button>
     `;
-     const saldo = 1000000;
+    const saldo = 1000000;
 
     const transactionList = document.getElementById("transactionList");
 
@@ -72,16 +77,81 @@ function displayATM() {
     const balanceButton = document.getElementById("balance");
     const logoutButton = document.getElementById("logout");
 
+
+
+    //
+
     withdrawButton.addEventListener("click", () => {
-        // Lógica para retirar dinero y registrar movimiento
-        saldoParagraph.textContent = ``
-        transactionList.innerHTML += "<li>Retiro realizado</li>";
+        const amountToWithdraw = prompt("Ingrese el monto que desea retirar:");
+
+        if (amountToWithdraw !== null && amountToWithdraw !== "") {
+            const parsedAmount = parseInt(amountToWithdraw);
+
+            if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
+                // Mostrar el mensaje de retiro realizado en la lista de transacciones
+                transactionList.innerHTML += `<li>Retiro de COP $${parsedAmount} realizado. Su nuevo saldo es $${saldo - parsedAmount}</li>`;
+
+                // Restar el monto retirado al saldo
+                saldo -= parsedAmount;
+
+                // Actualizar el párrafo del saldo con el nuevo saldo restante
+                saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+            } else {
+                // Mostrar un mensaje de error si el monto es inválido
+                transactionList.innerHTML += "<li>Monto de retiro inválido.</li>";
+            }
+        }
     });
 
+
+    // withdrawButton.addEventListener("click", () => {
+    //     const amountToWithdraw = prompt("Ingrese el monto que desea retirar:");
+
+    //     if (amountToWithdraw !== null && amountToWithdraw !== "") {
+    //         const parsedAmount = parseInt(amountToWithdraw);
+
+    //         if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
+    //             // Mostrar el mensaje de retiro realizado en la lista de transacciones
+    //             transactionList.innerHTML += `<li>Retiro de COP $${parsedAmount} realizado</li>`;
+
+    //             // Actualizar el saldo restando el monto retirado
+    //             saldo -= parsedAmount;
+
+    //             // Actualizar el párrafo del saldo con el nuevo saldo restante
+    //             saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+    //         } else {
+    //             // Mostrar un mensaje de error si el monto es inválido
+    //             transactionList.innerHTML += "<li>Monto de retiro inválido.</li>";
+    //         }
+    //     }
+    // });
+    //    
+
+
+
     depositButton.addEventListener("click", () => {
-        // Lógica para consignar dinero y registrar movimiento
-        transactionList.innerHTML += "<li>Consignación realizada</li>";
+        // Preguntar al usuario cuánto desea depositar
+        const amountToDeposit = prompt("Ingrese el monto que desea depositar:");
+
+        if (amountToDeposit !== null && amountToDeposit !== "") {
+            const parsedAmount = parseInt(amountToDeposit);
+
+            if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
+                // Mostrar el mensaje de retiro realizado en la lista de transacciones
+                transactionList.innerHTML += `<li>Consignación de COP $${parsedAmount} realizada. Su nuevo saldo es $${saldo - parsedAmount}</li>`;
+
+                // Restar el monto retirado al saldo
+                saldoNuevo = saldo -= parsedAmount;
+
+                // Actualizar el párrafo del saldo con el nuevo saldo restante
+                saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+            } else {
+                // Mostrar un mensaje de error si el monto es inválido
+                transactionList.innerHTML += "<li>Monto de consigación inválido.</li>";
+            }
+        }
     });
+
 
     transferButton.addEventListener("click", () => {
         // Lógica para transferir dinero y registrar movimiento
@@ -91,12 +161,12 @@ function displayATM() {
     balanceButton.addEventListener("click", () => {
         //const initialBalance = 1000000; // Saldo inicial de COP $1,000,000
         const saldoParagraph = document.getElementById("saldo"); // Asume que tienes un elemento con el ID "saldo" para mostrar el saldo
-    
+
         // Actualiza el párrafo del saldo y registra la consulta de saldo
-        saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+        saldoParagraph.textContent = `Consulta de saldo: COP $${saldo}`;
         transactionList.innerHTML += "<li>Consulta de saldo realizada</li>";
     });
-    
+
 
     logoutButton.addEventListener("click", () => {
         loggedInUser = null;
@@ -106,6 +176,6 @@ function displayATM() {
         document.getElementById("saldo").textContent = ""; // Limpia el contenido del elemento con ID "saldo"
         document.getElementById("transactionList").innerHTML = ""; // Limpia el contenido de la lista de transacciones
     });
-    
+
 }
 
