@@ -67,7 +67,11 @@ function displayATM() {
         </div>
         <button id="logout">Cerrar Sesión</button>
     `;
-    const saldo = 1000000;
+    let saldoTotal = 1000000;
+    sessionStorage.setItem('saldo', saldoTotal.toString());
+
+    // Recuperar desde sessionStorage y convertir de vuelta a número
+    let saldo = parseInt(sessionStorage.getItem('saldo'));
 
     const transactionList = document.getElementById("transactionList");
 
@@ -82,6 +86,8 @@ function displayATM() {
     //
 
     withdrawButton.addEventListener("click", () => {
+        let horaActual = new Date();
+        
         const amountToWithdraw = prompt("Ingrese el monto que desea retirar:");
 
         if (amountToWithdraw !== null && amountToWithdraw !== "") {
@@ -89,7 +95,7 @@ function displayATM() {
 
             if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
                 // Mostrar el mensaje de retiro realizado en la lista de transacciones
-                transactionList.innerHTML += `<li>Retiro de COP $${parsedAmount} realizado. Su nuevo saldo es $${saldo - parsedAmount}</li>`;
+                transactionList.innerHTML += `<li>Retiro de COP $${parsedAmount} realizado. Su nuevo saldo es $${saldo - parsedAmount}. Hora del movimiento: ${horaActual.toLocaleTimeString()}</li>`;
 
                 // Restar el monto retirado al saldo
                 saldo -= parsedAmount;
@@ -104,66 +110,97 @@ function displayATM() {
     });
 
 
-    // withdrawButton.addEventListener("click", () => {
-    //     const amountToWithdraw = prompt("Ingrese el monto que desea retirar:");
-
-    //     if (amountToWithdraw !== null && amountToWithdraw !== "") {
-    //         const parsedAmount = parseInt(amountToWithdraw);
-
-    //         if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
-    //             // Mostrar el mensaje de retiro realizado en la lista de transacciones
-    //             transactionList.innerHTML += `<li>Retiro de COP $${parsedAmount} realizado</li>`;
-
-    //             // Actualizar el saldo restando el monto retirado
-    //             saldo -= parsedAmount;
-
-    //             // Actualizar el párrafo del saldo con el nuevo saldo restante
-    //             saldoParagraph.textContent = `Saldo: COP $${saldo}`;
-    //         } else {
-    //             // Mostrar un mensaje de error si el monto es inválido
-    //             transactionList.innerHTML += "<li>Monto de retiro inválido.</li>";
-    //         }
-    //     }
-    // });
-    //    
-
 
 
     depositButton.addEventListener("click", () => {
+        let horaActual = new Date();
         // Preguntar al usuario cuánto desea depositar
         const amountToDeposit = prompt("Ingrese el monto que desea depositar:");
-
-        if (amountToDeposit !== null && amountToDeposit !== "") {
+    
+        // Validar que el monto sea un número positivo
+        const validAmount = /^\d+$/.test(amountToDeposit);
+    
+        if (validAmount) {
             const parsedAmount = parseInt(amountToDeposit);
-
+    
             if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
-                // Mostrar el mensaje de retiro realizado en la lista de transacciones
-                transactionList.innerHTML += `<li>Consignación de COP $${parsedAmount} realizada. Su nuevo saldo es $${saldo - parsedAmount}</li>`;
-
-                // Restar el monto retirado al saldo
-                saldoNuevo = saldo -= parsedAmount;
-
-                // Actualizar el párrafo del saldo con el nuevo saldo restante
-                saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+                // Validar la referencia de pago
+                const paymentReference = prompt("Ingrese la referencia de pago:");
+    
+                // Validar que la referencia tenga exactamente 4 dígitos
+                const validReference = /^\d{4}$/.test(paymentReference);
+    
+                if (validReference) {
+                    // Mostrar el mensaje de consignación realizada en la lista de transacciones
+                    transactionList.innerHTML += `<li>Consignación de COP $${parsedAmount} realizada. Su nuevo saldo es $${saldo - parsedAmount}. Hora del movimiento: ${horaActual.toLocaleTimeString()}</li>`;
+    
+                    // Restar el monto consignado al saldo
+                    saldo -= parsedAmount;
+    
+                    // Actualizar el párrafo del saldo con el nuevo saldo restante
+                    saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+                    // Actualizar también el saldo en el sessionStorage
+                    sessionStorage.setItem('saldo', saldo.toString());
+                } else {
+                    // Mostrar un mensaje de error si la referencia de pago es inválida
+                    transactionList.innerHTML += "<li>Referencia de pago inválida. Debe tener 4 dígitos.</li>";
+                }
             } else {
                 // Mostrar un mensaje de error si el monto es inválido
-                transactionList.innerHTML += "<li>Monto de consigación inválido.</li>";
+                transactionList.innerHTML += "<li>Monto de consignación inválido.</li>";
             }
+        } else {
+            // Mostrar un mensaje de error si el monto no es válido
+            transactionList.innerHTML += "<li>Por favor, ingrese un monto válido.</li>";
         }
     });
+    
 
 
     transferButton.addEventListener("click", () => {
-        // Lógica para transferir dinero y registrar movimiento
-        transactionList.innerHTML += "<li>Transferencia realizada</li>";
+        let horaActual = new Date();
+        const amountToTransfer = prompt("Ingrese el monto que desea transferir:");
+        const account = prompt("Ingrese el número de cuenta:");
+    
+        // Validar que el monto sea un número positivo y que el número de cuenta cumpla con ciertos criterios
+        const validAmount = /^\d+$/.test(amountToTransfer);
+        const validAccount = /^[a-zA-Z0-9]{6,20}$/.test(account);
+    
+        if (validAmount && validAccount) {
+            const parsedAmount = parseInt(amountToTransfer);
+    
+            if (!isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= saldo) {
+                // Mostrar el mensaje de transferencia realizada en la lista de transacciones
+                transactionList.innerHTML += `<li>Transferencia de COP $${parsedAmount} al número de cuenta ${account} realizada. Saldo restante: $${saldo - parsedAmount}. Hora del movimiento: ${horaActual.toLocaleTimeString()}</li>`;
+    
+                // Restar el monto transferido al saldo
+                saldo -= parsedAmount;
+    
+                // Actualizar el párrafo del saldo con el nuevo saldo restante
+                saldoParagraph.textContent = `Saldo: COP $${saldo}`;
+                // Actualizar también el saldo en el sessionStorage
+                sessionStorage.setItem('saldo', saldo.toString());
+            } else {
+                // Mostrar un mensaje de error si el monto es inválido
+                transactionList.innerHTML += "<li>Monto de transferencia inválido.</li>";
+            }
+        } else {
+            // Mostrar un mensaje de error si el monto o el número de cuenta no cumplen con los requisitos
+            transactionList.innerHTML += "<li>Por favor, ingrese un monto válido y un número de cuenta no mayor ni menor a 8 dígitos.</li>";
+        }
     });
+    
+    
+
+
+
 
     balanceButton.addEventListener("click", () => {
-        //const initialBalance = 1000000; // Saldo inicial de COP $1,000,000
+        let horaActual = new Date();
         const saldoParagraph = document.getElementById("saldo"); // Asume que tienes un elemento con el ID "saldo" para mostrar el saldo
 
         // Actualiza el párrafo del saldo y registra la consulta de saldo
-        saldoParagraph.textContent = `Consulta de saldo: COP $${saldo}`;
+        saldoParagraph.textContent = `Consulta de saldo: COP $${saldo}. Hora del movimiento: ${horaActual.toLocaleTimeString()}`;
         transactionList.innerHTML += "<li>Consulta de saldo realizada</li>";
     });
 
